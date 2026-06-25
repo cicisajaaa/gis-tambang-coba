@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "perusahaan": "PT. Banua Spasial Lestari"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [114.60, -3.10],
+            [114.70, -3.10],
+            [114.70, -3.20],
+            [114.60, -3.20],
+            [114.60, -3.10]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "perusahaan": "PT. Borneo Inti Tambang"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [114.75, -3.35],
+            [114.85, -3.35],
+            [114.85, -3.45],
+            [114.75, -3.45],
+            [114.75, -3.35]
+          ]
+        ]
+      }
+    }
+  ]
+}
