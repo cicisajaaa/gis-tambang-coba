@@ -94,7 +94,13 @@ class TambangController extends Controller
                 'updated_at' => now(),
             ]);
 
-            return back()->with('error', $pesanError);
+            // Kirimkan balik koordinat dan status error agar digambar di peta
+            return back()->with([
+                'error' => $pesanError,
+                'preview_area' => $wktString,
+                'preview_status' => 'DITOLAK',
+                'preview_nama' => $namaPerusahaanInput
+            ]);
         } else {
             $pesanSukses = "Selamat! Wilayah yang diajukan <b>AMAN</b> dan bebas dari tumpang tindih lahan tambang lain.";
             
@@ -108,7 +114,13 @@ class TambangController extends Controller
                 'updated_at' => now(),
             ]);
 
-            return back()->with('success', $pesanSukses);
+            // Kirimkan balik koordinat dan status sukses agar digambar di peta
+            return back()->with([
+                'success' => $pesanSukses,
+                'preview_area' => $wktString,
+                'preview_status' => 'LOLOS',
+                'preview_nama' => $namaPerusahaanInput
+            ]);
         }
     }
 

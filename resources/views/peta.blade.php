@@ -142,7 +142,11 @@
                 <hr class="text-muted my-3 opacity-25">
                 
                 <h6 class="fw-bold text-secondary small mb-2"><i class="fa-solid fa-circle-info me-1"></i>Sampel Struktur Koordinat:</h6>
-                <p class="small text-muted mb-2">Simpan struktur teks di bawah ini menjadi file <code>uji.geojson</code> untuk pengujian wilayah aman:</p>
+                <p class="small text-muted mb-3">Kamu bisa langsung mengunduh template berkas siap pakai di bawah ini untuk simulasi pengujian:</p>
+                
+                <button type="button" onclick="unduhTemplateGeoJSON()" class="btn btn-outline-dark w-100 btn-sm fw-medium mb-3 rounded-3">
+                    <i class="fa-solid fa-file-arrow-down me-1"></i> Unduh Template Berkas (.geojson)
+                </button>
                 
                 <pre class="code-box font-monospace text-break mb-0" style="user-select: all;" title="Klik 3x untuk memblok seluruh kode">
 {
@@ -190,7 +194,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // 1. Definisikan Mode Peta
+    // 1. Definisikan Mode Basemap Peta
     var osmStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
     });
@@ -231,7 +235,7 @@
         });
     }
 
-    // 4. Perulangan Menggambar Poligon Area dari Database
+    // 4. Perulangan Menggambar Poligon Area Konsesi Aktif dari Database
     @foreach($tambangAktif as $tambang)
         var wktText = "{{ $tambang->area }}";
         var cleanCoords = wktText.replace("POLYGON((", "").replace("))", "").split(",");
@@ -258,5 +262,83 @@
             </div>`
         );
     @endforeach
+
+    // 5. MENAMPILKAN POLIGON HASIL UPLOAD SECARA DINAMIS (PREVIEW AREA)
+    @if(session('preview_area'))
+        var previewWkt = "{{ session('preview_area') }}";
+        var previewStatus = "{{ session('preview_status') }}";
+        var previewNama = "{{ session('preview_nama') }}";
+
+        var cleanPreviewCoords = previewWkt.replace("POLYGON((", "").replace("))", "").split(",");
+        var previewLatLngs = cleanPreviewCoords.map(function(coord) {
+            var parts = coord.trim().split(" ");
+            return [parseFloat(parts[1]), parseFloat(parts[0])]; 
+        });
+
+        // Warna poligon pemohon: Hijau jika lolos, Oranye jika tumpang tindih
+        var warnaPoligon = (previewStatus === 'LOLOS') ? '#198754' : '#fd7e14';
+
+        var userPolygon = L.polygon(previewLatLngs, {
+            color: warnaPoligon,
+            fillColor: warnaPoligon,
+            fillOpacity: 0.4,
+            weight: 3
+        }).addTo(map);
+
+        userPolygon.bindPopup(`
+            <div style="font-family: sans-serif; padding: 2px; min-width: 160px;">
+                <span class="badge ${previewStatus === 'LOLOS' ? 'bg-success' : 'bg-warning'} text-white d-block mb-2 text-center py-1">
+                    ${previewStatus === 'LOLOS' ? '✓ Lahan Aman' : '⚠️ Terdeteksi Konflik'}
+                </span>
+                <table class="table table-borderless table-sm small mb-0" style="font-size: 0.78rem;">
+                    <tr><td class="text-muted p-0">Berkas Pemohon:</td></tr>
+                    <tr><td class="fw-bold p-0 text-dark">${previewNama}</td></tr>
+                </table>
+            </div>
+        `).openPopup();
+
+        // Fokus kamera peta memperbesar langsung ke poligon yang baru diupload
+        map.fitBounds(userPolygon.getBounds(), {
+            padding: [50, 50],
+            maxZoom: 13,
+            animate: true,
+            duration: 1.2
+        });
+    @endif
+
+    // 6. Fungsi Pembuatan & Unduh File GeoJSON Otomatis
+    function unduhTemplateGeoJSON() {
+        var dataGeoJSON = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "perusahaan": "PT. Banua Spasial Lestari"
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[
+                            [114.60, -3.10],
+                            [114.70, -3.10],
+                            [114.70, -3.20],
+                            [114.60, -3.20],
+                            [114.60, -3.10]
+                        ]]
+                    }
+                }
+            ]
+        };
+
+        var jsonString = JSON.stringify(dataGeoJSON, null, 2);
+        var blob = new Blob([jsonString], { type: "application/json" });
+        var link = document.createElement("a");
+        link.download = "uji_lahan_aman.geojson";
+        link.href = window.URL.createObjectURL(blob);
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 </script>
 @endsection
